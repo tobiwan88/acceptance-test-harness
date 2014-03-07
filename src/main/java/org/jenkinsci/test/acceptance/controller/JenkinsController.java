@@ -13,7 +13,7 @@ import java.net.URL;
  * @author: Vivek Pandey
  */
 @ExtensionPoint
-public abstract class JenkinsController {
+public abstract class JenkinsController implements Closeable {
     /**
      * directory on the computer where this code is running that points to a directory
      * where test code can place log files, cache files, etc.
@@ -71,6 +71,15 @@ public abstract class JenkinsController {
     }
 
     /**
+     * Alias for {@link #tearDown()} ()}
+     */
+    @Override
+    public final void close() throws IOException {
+        stop();
+        tearDown();
+    }
+
+    /**
      * Jenkins controller specific stop logic
      */
     public abstract void stopNow() throws IOException;
@@ -96,6 +105,10 @@ public abstract class JenkinsController {
 
     public abstract void diagnose();
 
+    /**
+     * Takes {@link #stop()} one step further by deleting anything that the controller has created.
+     * Once this method is called, the instance will not be startable.
+     */
     public abstract void tearDown();
 
     /**
