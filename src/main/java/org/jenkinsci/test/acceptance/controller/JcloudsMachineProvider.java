@@ -7,6 +7,7 @@ import com.google.inject.Inject;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import org.codehaus.plexus.util.FileUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.apis.ApiMetadata;
 import org.jclouds.apis.Apis;
@@ -23,8 +24,14 @@ import org.jclouds.sshj.config.SshjSshClientModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
@@ -55,7 +62,7 @@ public abstract class JcloudsMachineProvider implements MachineProvider,Closeabl
 
     protected final ContextBuilder contextBuilder;
 
-    private final String groupName="jenkins-test";
+    private final String groupName=getGroupName();
     private final String provider;
     private volatile BlockingQueue<Machine> queue=null;
     private final AtomicInteger provisionedMachineCount = new AtomicInteger();
@@ -101,8 +108,7 @@ public abstract class JcloudsMachineProvider implements MachineProvider,Closeabl
             synchronized (this){
                 bq = queue;
                 if(bq == null){
-                    logger.info(String.format("Setting up %s  %s machines...", maxNumOfMachines, provider));
-                    queue = bq =  new LinkedBlockingQueue<>(maxNumOfMachines);
+                    queue = bq =  new LinkedBlockingQueue<>();
                 }
             }
         }
@@ -178,6 +184,14 @@ public abstract class JcloudsMachineProvider implements MachineProvider,Closeabl
     }
 
     private Set<? extends NodeMetadata> createNewNodes(int minNumOfMachines, int maxNumOfMachines){
+        logger.info(String.format("Setting up %s  %s machines...", maxNumOfMachines, provider));
+
+        //check if there are already machines in this security group
+        logger.info(String.format("Checkin if ther are running machines in the security group: %s... ", groupName));
+
+        //pickup nodes
+//        computeService.listNodesDetailsMatching(inGroup(groupName));
+//
         Template template;
         try {
             template = getTemplate();
@@ -265,6 +279,33 @@ public abstract class JcloudsMachineProvider implements MachineProvider,Closeabl
             }
         }
     }
+
+    public static String getGroupName(){
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(String.format("%s%s%s", System.getProperty("user.name"),InetAddress.getLocalHost().getHostName(),
+                    getConfigFileContent()).getBytes("UTF-8"));
+            byte[] digest = md.digest();
+            return "JAT-"+ DatatypeConverter.printHexBinary(digest).substring(0,7);
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException | UnknownHostException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String getConfigFileContent(){
+        String configFile = System.getProperty("CONFIG");
+        if(configFile != null){
+            try {
+                return FileUtils.fileRead(configFile);
+            } catch (IOException e) {
+                return "config";
+            }
+        }else{
+            return "config";
+        }
+    }
+
+//    private static final String EC2_INSTANCE_LOG=System.getProperty("user.home")
 
     private static final Logger logger = LoggerFactory.getLogger(MachineProvider.class);
 }

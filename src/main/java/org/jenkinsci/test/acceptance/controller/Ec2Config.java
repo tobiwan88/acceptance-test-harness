@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,7 +47,7 @@ public class Ec2Config {
 
     @Inject(optional = true)
     @Named("securityGroup") //default jenkins-test
-    private List<String> securityGroups= Collections.singletonList("jenkins-test");
+    private List<String> securityGroups = new ArrayList<>();
 
     @Inject(optional = true)
     @Named("keyPairName") //default jenkins-test
@@ -81,6 +81,7 @@ public class Ec2Config {
             if(secret == null){
                 throw new RuntimeException(String.format("EC2 config file %s does not have 'secret'",ec2ConfigFile));
             }
+            securityGroups.add(JcloudsMachineProvider.getGroupName());
         } catch (IOException e) {
             throw new RuntimeException(String.format("EC2 credential configuration file %s does not exist", ec2ConfigFile));
         }

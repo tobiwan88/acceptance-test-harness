@@ -12,14 +12,7 @@ import org.jenkinsci.test.acceptance.guice.WorldCleaner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Collections;
-
-import static com.google.common.base.Charsets.UTF_8;
 
 /**
  * @author Vivek Pandey
@@ -86,24 +79,7 @@ public class Ec2Provider extends JcloudsMachineProvider {
         options.authorizePublicKey(publicKey)
                 .securityGroups(config.getSecurityGroups())
                 .inboundPorts(config.getInboundPorts())
-                .overrideLoginUser(config.getUser());
-        if(config.getKeyPairName() == null){
-            options.noKeyPair();
-        }else{
-            options.keyPair(config.getKeyPairName());
-        }
-
-        //tag
-        //Tag the provisioned instance with md5(CWD+HOST_IP_ADDRESS)
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(String.format("%s%s%s",System.getProperty("user.dir"),System.currentTimeMillis(), new SecureRandom().nextLong()).getBytes(UTF_8));
-            byte[] digest = md.digest();
-            String tag = DatatypeConverter.printHexBinary(digest);
-            options.tags(Collections.singletonList(tag));
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+                .overrideLoginUser(config.getUser()).noKeyPair();
         return template;
     }
 
