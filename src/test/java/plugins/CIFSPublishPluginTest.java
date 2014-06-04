@@ -115,8 +115,7 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         j.save();
 
         j.startBuild().shouldSucceed();
-        smbd.cp("/tmp/odes.txt", new File("/tmp"));
-
+        assertTrue(smbd.tryCopyFile("/tmp/odes.txt","/tmp/"));
         assertThat(FileUtils.readFileToString(new File("/tmp/odes.txt")), CoreMatchers.is(cp_file.asText()));
     }
 
@@ -353,7 +352,7 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         }
         j.save();
         j.startBuild().shouldSucceed();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
         assertTrue(!new File("/tmp/dockertmp/.svn").exists());
         assertTrue(!new File("/tmp/dockertmp/CVS").exists());
@@ -395,7 +394,7 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         }
         j.save();
         j.startBuild().shouldSucceed();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
         assertTrue(new File("/tmp/dockertmp/.svn").exists());
         assertTrue(new File("/tmp/dockertmp/CVS").exists());
@@ -440,7 +439,7 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
 
         j.save();
         j.startBuild().shouldSucceed();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
         assertTrue(new File("/tmp/dockertmp/empty/").exists());
     }
@@ -482,7 +481,7 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         }
 
         j.save();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
         assertTrue(!new File("/tmp/dockertmp/empty/").exists());
     }
@@ -519,7 +518,7 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         }
         j.save();
         j.startBuild().shouldSucceed();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/flat/odes.txt").exists());
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
     }
@@ -622,7 +621,6 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
     public void publish_with_clean_remote() throws IOException, InterruptedException {
         SMBContainer smb = docker.start(SMBContainer.class);
         Resource cp_txt = resource("/ftp_plugin/odes.txt");
-        Resource old_txt = resource("/ftp_plugin/old.txt");
        //TODO: add old file upload+ check!
         FreeStyleJob j = jenkins.jobs.create();
         jenkinsCifsConfigure("asd", smb);
@@ -636,8 +634,9 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         }
         j.save();
         j.startBuild().shouldSucceed();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
+        assertTrue(!new File("/tmp/dockertmp/old.txt").exists());
     }
 
     /**
@@ -679,7 +678,7 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         }
         j.save();
         j.startBuild().shouldSucceed();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
         assertTrue(new File("/tmp/dockertmp/odes.txt2").exists());
         assertTrue(new File("/tmp/dockertmp/odes.txt3").exists());
@@ -728,10 +727,10 @@ public class CIFSPublishPluginTest extends AbstractJUnitTest {
         }
         j.save();
         j.startBuild().shouldSucceed();
-        smb.cp("/tmp/", new File("/tmp/dockertmp/"));
+        smb.cp("/tmp/", new File("/tmp/dockertmp"));
         assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
-        smb.cp("/tmp/", new File("/tmp/dockertmp2/"));
-        assertTrue(new File("/tmp/dockertmp/odes.txt").exists());
+        smb.cp("/tmp/", new File("/tmp/dockertmp2"));
+        assertTrue(new File("/tmp/dockertmp2/odes.txt").exists());
 
     }
 

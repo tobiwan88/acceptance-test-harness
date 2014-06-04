@@ -21,6 +21,7 @@ RUN echo "pasv_enable=YES" >> /etc/myftp.conf
 RUN echo "pasv_min_port=7050" >> /etc/myftp.conf
 RUN echo "pasv_max_port=7055" >> /etc/myftp.conf
 RUN mkdir -p /var/run/vsftpd/empty
+RUN echo "Bla" >> /tmp/old.txt
 
 # create a test user
 RUN useradd test -d /home/test && \
